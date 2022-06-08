@@ -1,0 +1,43 @@
+---
+Parameters:
+  SecurityGroupDescription:
+    Description: Security Group Description
+    Type: String
+
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-02541b8af977f6cdd
+      InstanceType: t2.micro
+      IamInstanceProfile: cbqa-talks-demo-ec2
+      SecurityGroups:
+        - !Ref ServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: cbqa-talks-demo
+        - Key: Environment
+          Value: Development
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install -y ruby wget
+          wget https://aws-codedeploy-us-west-1.s3.us-west-1.amazonaws.com/latest/install
+          chmod +x ./install
+          sudo ./install auto
+
+  # our EC2 security group
+  ServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Ref SecurityGroupDescription
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
